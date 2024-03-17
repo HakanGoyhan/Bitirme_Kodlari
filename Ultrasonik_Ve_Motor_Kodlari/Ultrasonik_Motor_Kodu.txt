@@ -1,0 +1,83 @@
+#define motorInterfaceType 1
+
+#define stepPin 2
+#define dirPin 5
+#define trigPin 4
+#define echoPin 3
+#define signalPin 7
+#define switchPin 8 // Slide switch için pin tanımlaması
+
+int count=0;
+bool box= true;
+bool motorEnabled = false; // Motorun çalışıp çalışmadığını kontrol etmek için
+
+void setup() {
+  Serial.begin(9600); // Seri haberleşme
+
+  pinMode(stepPin, OUTPUT);
+  pinMode(signalPin, OUTPUT);
+  pinMode(dirPin, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  digitalWrite(dirPin, LOW);
+
+  pinMode(switchPin, INPUT_PULLUP); // Slide switch pinini giriş olarak ayarla ve dahili pull-up direncini etkinleştir
+}
+
+void loop() {
+  motorEnabled = digitalRead(switchPin) == LOW; // Slide switch LOW pozisyonunda ise motoru etkinleştir
+      digitalWrite(signalPin, LOW);
+
+
+ if (motorEnabled) {
+    // Motor etkinleştirildiğinde çalışacak kodlar
+    count++;
+
+    long duration, distance;
+    if (count % 500 == 0) {
+      digitalWrite(trigPin, LOW);
+      delayMicroseconds(2);
+      digitalWrite(trigPin, HIGH);
+      delayMicroseconds(10);
+      digitalWrite(trigPin, LOW);
+      duration = pulseIn(echoPin, HIGH);
+      distance = duration * 0.034 / 2;
+      
+      Serial.print("Mesafe: ");
+      Serial.print(distance);
+      Serial.println(" cm");
+      
+      while (distance < 19 && box) {
+        digitalWrite(signalPin, HIGH);
+        
+        digitalWrite(trigPin, LOW);
+        delayMicroseconds(2);
+        digitalWrite(trigPin, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(trigPin, LOW);
+        duration = pulseIn(echoPin, HIGH);
+        distance = duration * 0.034 / 2;
+        
+        Serial.print("Mesafe dongude: ");
+        Serial.print(distance);
+        Serial.println(" cm");
+        Serial.println("Engel tespit edildi, motor durduruluyor.");
+        
+        // digitalWrite(signalPin, HIGH);
+        delay(10000);
+        box = false;
+        Serial.print("box: ");
+        Serial.println(box);
+      }
+      
+      if (!(distance < 19)) {
+        box = true;
+      }
+    }
+    
+    digitalWrite(stepPin, HIGH);
+    delayMicroseconds(700);
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(700);
+  }
+}
