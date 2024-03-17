@@ -1,0 +1,36 @@
+import serial
+import time
+import numpy as np
+
+# Seri port ve baud rate ayarları
+bluetoothSerial = serial.Serial('/dev/ttyTHS1', 9600)
+
+def gonder(meyve_dizisi):
+    """Meyve sayılarını bir NumPy dizisi olarak Bluetooth üzerinden gönder."""
+    
+    # Meyve dizisini stringe dönüştür ve newline karakteri ekle
+    meyve_dizisi_str = np.array2string(meyve_dizisi, separator=',') + "\n"
+
+    # Stringi UTF-8 ile encode et ve gönder
+    bluetoothSerial.write(meyve_dizisi_str.encode('utf-8'))
+    print("Mesaj gönderildi:", meyve_dizisi_str)
+
+try:
+    # Meyve sayılarını bir NumPy dizisi olarak tanımla
+    meyve_sayilari = np.array([2, 1, 3, 4])
+    
+    while True:
+        # Tanınan meyveleri gönder
+        gonder(meyve_sayilari)
+        
+        # Dizi elemanlarını bir artır
+        meyve_sayilari += 1
+        
+        # 2 saniye bekle
+        time.sleep(2)
+
+except KeyboardInterrupt:
+    print("Program sonlandırıldı")
+
+finally:
+    bluetoothSerial.close()  # Seri bağlantıyı temizle
